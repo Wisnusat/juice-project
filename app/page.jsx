@@ -77,7 +77,7 @@ export default function Home() {
             calories="220 kcal"
             price="Rp 85.000"
             vitamins="Vit A, C, K"
-            image="/assets/greek_salad.svg"
+            image="/assets/greek_salad.png"
           />
 
           <MenuItem
