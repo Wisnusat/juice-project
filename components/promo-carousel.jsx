@@ -24,7 +24,7 @@ const promoItems = [
     id: 3,
     title: "Protein bowl",
     subtitle: "For fitness lovers",
-    image: "/assets/protein_bowl.jpg",
+    image: "/assets/protein_bowl-2.jpg",
     bgColor: "bg-orange-50",
   },
   {
