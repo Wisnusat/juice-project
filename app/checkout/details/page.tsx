@@ -14,8 +14,8 @@ export default function CheckoutDetailsPage() {
     name: "",
     phone: "",
   })
-  const [diningOption, setDiningOption] = useState<string>("dine-in")
-  const [voucherOption, setVoucherOption] = useState<"use" | "no">("no")
+  // const [diningOption, setDiningOption] = useState<string>("dine-in")
+  // const [voucherOption, setVoucherOption] = useState<"use" | "no">("no")
   const [totalPrice, setTotalPrice] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -29,38 +29,14 @@ export default function CheckoutDetailsPage() {
       return
     }
 
-    setIsSubmitting(true)
+    // Store customer info in localStorage
+    localStorage.setItem('customerInfo', JSON.stringify({
+      name: formData.name,
+      phone: formData.phone
+    }))
 
-    try {
-      const cartItems = getCartItems()
-      const userId = getUserId()
-
-      const foodOrders = cartItems.map(item => ({
-        foodId: item.id,
-        quantity: item.quantity
-      }))
-
-      const { success, error } = await createTransaction(
-        formData.name,
-        formData.phone,
-        totalPrice,
-        userId,
-        foodOrders
-      )
-
-      if (success) {
-        // Clear cart and redirect to success page
-        localStorage.removeItem('cart')
-        router.push('/checkout/success')
-      } else {
-        alert(error || 'Failed to process payment')
-      }
-    } catch (error) {
-      console.error('Payment error:', error)
-      alert('An error occurred while processing your payment')
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Redirect to payment page
+    router.push('/checkout/payment')
   }
 
   useEffect(() => {
@@ -111,7 +87,7 @@ export default function CheckoutDetailsPage() {
       </div>
 
       {/* Dining Options */}
-      <div className="bg-white rounded-2xl p-6 mb-6 border">
+      {/* <div className="bg-white rounded-2xl p-6 mb-6 border">
         <div className="space-y-4">
           <label className="flex items-center">
             <input
@@ -147,7 +123,7 @@ export default function CheckoutDetailsPage() {
             />
           </label>
         </div>
-      </div>
+      </div> */}
 
       {/* Payment Details */}
       <div className="bg-white rounded-2xl p-6 mb-20 border">
