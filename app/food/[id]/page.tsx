@@ -7,7 +7,7 @@ import { useState, useEffect } from "react"
 import { getFoodById, Food } from "../../../lib/supabase"
 import { getCartItems, addToCart, removeFromCart, CartItem } from "../../../lib/cart"
 
-export default function FoodDetailPage({ params }: { params: { id: string } }) {
+export default function FoodDetailPage({ params }: any) {
   const router = useRouter()
   const [isFavorite, setIsFavorite] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
