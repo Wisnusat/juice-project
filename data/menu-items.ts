@@ -1,10 +1,3 @@
-export interface Topping {
-  id: string
-  name: string
-  image: string
-  price: number
-}
-
 export interface MenuItem {
   id: string
   name: string
@@ -16,7 +9,7 @@ export interface MenuItem {
   vitamins: string
   image: string
   rating: number
-  toppings: Topping[]
+  tag: string
 }
 
 export const menuItems: Record<string, MenuItem> = {
@@ -32,13 +25,7 @@ export const menuItems: Record<string, MenuItem> = {
     vitamins: "Vit C, A, E",
     image: "/assets/waldorf_salad.svg",
     rating: 4.5,
-    toppings: [
-      { id: "walnut", name: "Walnut", image: "/assets/toppings/walnut.png", price: 5000 },
-      { id: "onion", name: "Red Onion", image: "/assets/toppings/onion.png", price: 3000 },
-      { id: "tomato", name: "Cherry Tomato", image: "/assets/toppings/tomato.png", price: 4000 },
-      { id: "spinach", name: "Spinach", image: "/assets/toppings/spinach.png", price: 3000 },
-      { id: "pineapple", name: "Pineapple", image: "/assets/toppings/pineapple.png", price: 5000 },
-    ],
+    tag: "savory"
   },
   "greek-salad": {
     id: "greek-salad",
@@ -52,13 +39,7 @@ export const menuItems: Record<string, MenuItem> = {
     vitamins: "Vit A, C, K",
     image: "/assets/greek_salad.png",
     rating: 4.7,
-    toppings: [
-      { id: "feta", name: "Extra Feta", image: "/assets/toppings/feta.png", price: 8000 },
-      { id: "onion", name: "Red Onion", image: "/assets/toppings/onion.png", price: 3000 },
-      { id: "olive", name: "Kalamata Olive", image: "/assets/toppings/olive.png", price: 6000 },
-      { id: "cucumber", name: "Cucumber", image: "/assets/toppings/cucumber.png", price: 3000 },
-      { id: "pepper", name: "Bell Pepper", image: "/assets/toppings/pepper.png", price: 4000 },
-    ],
+    tag: "savory"
   },
   "italian-pasta-salad": {
     id: "italian-pasta-salad",
@@ -72,12 +53,6 @@ export const menuItems: Record<string, MenuItem> = {
     vitamins: "Vit A, C",
     image: "/assets/pasta_salad.svg",
     rating: 4.6,
-    toppings: [
-      { id: "mozzarella", name: "Mozzarella", image: "/assets/toppings/cheese.png", price: 7000 },
-      { id: "onion", name: "Red Onion", image: "/assets/toppings/onion.png", price: 3000 },
-      { id: "tomato", name: "Cherry Tomato", image: "/assets/toppings/tomato.png", price: 4000 },
-      { id: "basil", name: "Fresh Basil", image: "/assets/toppings/basil.png", price: 3000 },
-      { id: "olive", name: "Black Olive", image: "/assets/toppings/olive.png", price: 5000 },
-    ],
+    tag: "sour"
   },
 } 

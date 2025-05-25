@@ -4,7 +4,9 @@ import { useEffect, useState } from "react"
 import { CheckoutProgress } from "../../../components/ui/checkout-progress"
 import { useRouter } from "next/navigation"
 import { User, Phone } from "lucide-react"
-import { getCartTotal } from "../../../lib/cart"
+import { getCartTotal, getCartItems } from "../../../lib/cart"
+import { createTransaction } from "../../../lib/supabase"
+import { getUserId } from "../../../lib/user"
 
 export default function CheckoutDetailsPage() {
   const router = useRouter()
@@ -15,13 +17,50 @@ export default function CheckoutDetailsPage() {
   const [diningOption, setDiningOption] = useState<string>("dine-in")
   const [voucherOption, setVoucherOption] = useState<"use" | "no">("no")
   const [totalPrice, setTotalPrice] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleOrderNow = () => {
-    router.push("/checkout/payment")
+  const handleOrderNow = async () => {
+    if (!formData.name || !formData.phone) {
+      alert("Please fill in your name and phone number")
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const cartItems = getCartItems()
+      const userId = getUserId()
+
+      const foodOrders = cartItems.map(item => ({
+        foodId: item.id,
+        quantity: item.quantity
+      }))
+
+      const { success, error } = await createTransaction(
+        formData.name,
+        formData.phone,
+        totalPrice,
+        userId,
+        foodOrders
+      )
+
+      if (success) {
+        // Clear cart and redirect to success page
+        localStorage.removeItem('cart')
+        router.push('/checkout/success')
+      } else {
+        alert(error || 'Failed to process payment')
+      }
+    } catch (error) {
+      console.error('Payment error:', error)
+      alert('An error occurred while processing your payment')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   useEffect(() => {
@@ -131,9 +170,10 @@ export default function CheckoutDetailsPage() {
       <div className="fixed bottom-4 left-0 right-0 max-w-md mx-auto px-4">
         <button
           onClick={handleOrderNow}
-          className="w-full bg-purple-700 text-white font-bold py-4 rounded-full text-lg"
+          disabled={isSubmitting}
+          className="w-full bg-purple-700 text-white font-bold py-4 rounded-full text-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Order Now Rp.{totalPrice.toLocaleString()}
+          {isSubmitting ? "Processing..." : `Order Now Rp.${totalPrice.toLocaleString()}`}
         </button>
       </div>
     </div>

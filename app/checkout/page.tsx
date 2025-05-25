@@ -173,7 +173,10 @@ export default function CheckoutPage() {
 
       {/* Payment Button */}
       <div className="fixed bottom-4 left-0 right-0 max-w-md mx-auto px-4">
-        <button onClick={handlePayment} className="w-full bg-purple-700 text-white font-bold py-4 rounded-full text-lg">
+        <button
+          onClick={handlePayment}
+          className="w-full bg-purple-700 text-white font-bold py-4 rounded-full text-lg"
+        >
           Continue Rp. {totalPrice.toLocaleString()}
         </button>
       </div>

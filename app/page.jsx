@@ -5,9 +5,28 @@ import { Search, ShoppingCart, Bell, Menu } from "lucide-react"
 import { PromoCarousel } from "../components/ui/promo-carousel"
 import { MenuItem } from "../components/ui/menu-item"
 import { FloatingCart } from "../components/ui/floating-cart"
-import { menuItems } from "../data/menu-items"
+import { useState, useEffect } from "react"
+import { getFoods } from "../lib/supabase"
 
 function Home() {
+  const [foods, setFoods] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchFoods = async () => {
+      try {
+        const data = await getFoods()
+        setFoods(data)
+      } catch (error) {
+        console.error('Error fetching foods:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFoods()
+  }, [])
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
       {/* Header */}
@@ -70,19 +89,25 @@ function Home() {
       <div className="px-4 py-6">
         <h2 className="text-2xl font-bold text-purple-700 mb-4">Menu Recommendation</h2>
 
-        {Object.values(menuItems).map((item) => (
-          <MenuItem
-            key={item.id}
-            id={item.id}
-            name={item.name}
-            description={item.description}
-            weight={item.weight}
-            calories={item.calories}
-            price={`Rp ${item.price.toLocaleString()}`}
-            vitamins={item.vitamins}
-            image={item.image}
-          />
-        ))}
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-700"></div>
+          </div>
+        ) : (
+          foods.map((item) => (
+            <MenuItem
+              key={item.id}
+              id={item.id}
+              name={item.name}
+              description={item.description}
+              weight={item.weight || "300g"}
+              calories={item.calories || "250 kcal"}
+              price={`Rp ${item.price.toLocaleString()}`}
+              vitamins={item.vitamins || "Vitamin C"}
+              image={item.image}
+            />
+          ))
+        )}
       </div>
 
       {/* Floating Cart */}
