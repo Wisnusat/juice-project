@@ -12,6 +12,7 @@ export interface Food {
   price: number
   image: string
   category: string
+  tag: string
   vitamins?: string
   weight?: string
   calories?: string
@@ -106,4 +107,47 @@ export async function createTransaction(
     console.error('Error creating transaction:', error)
     return { success: false, error: 'Failed to create transaction' }
   }
+}
+
+export async function getUserTransactionHistory(userId: string): Promise<{
+  foodId: string
+  tags: string[]
+}[]> {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+      foods_order (
+        food_id,
+        foods (
+          tag
+        )
+      )
+    `)
+    .eq('user_id', userId)
+  
+  if (error) {
+    console.error('Error fetching user transaction history:', error)
+    return []
+  }
+
+  return data?.flatMap(transaction => 
+    transaction.foods_order.map((order: any) => ({
+      foodId: order.food_id,
+      tags: order.foods.tag.split(',').map((tag: string) => tag.trim())
+    }))
+  ) || []
+}
+
+export async function searchFoods(query: string): Promise<Food[]> {
+  const { data, error } = await supabase
+    .from('foods')
+    .select('*')
+    .or(`name.ilike.%${query}%,description.ilike.%${query}%,tag.ilike.%${query}%`)
+  
+  if (error) {
+    console.error('Error searching foods:', error)
+    return []
+  }
+
+  return data || []
 } 

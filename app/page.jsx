@@ -1,31 +1,73 @@
 "use client"
 
-import Image from "next/image"
-import { Search, ShoppingCart, Bell, Menu } from "lucide-react"
+import { Search } from "lucide-react"
 import { PromoCarousel } from "../components/ui/promo-carousel"
 import { MenuItem } from "../components/ui/menu-item"
 import { FloatingCart } from "../components/ui/floating-cart"
 import { useState, useEffect } from "react"
-import { getFoods } from "../lib/supabase"
+import { getFoods, getUserTransactionHistory, searchFoods } from "../lib/supabase"
+import { getUserId } from "../lib/user"
 
 function Home() {
   const [foods, setFoods] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
-    const fetchFoods = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getFoods()
-        setFoods(data)
+        const [allFoods, userHistory] = await Promise.all([
+          getFoods(),
+          getUserTransactionHistory(getUserId())
+        ])
+
+        // Calculate tag frequencies from user history
+        const tagFrequencies = userHistory.reduce((acc, order) => {
+          order.tags.forEach(tag => {
+            acc[tag] = (acc[tag] || 0) + 1 // Count each tag occurrence once
+          })
+          return acc
+        }, {})
+
+        // Sort foods by tag frequency
+        const sortedFoods = allFoods.sort((a, b) => {
+          const aTags = a.tag.split(',').map(tag => tag.trim())
+          const bTags = b.tag.split(',').map(tag => tag.trim())
+          
+          const aScore = aTags.reduce((sum, tag) => sum + (tagFrequencies[tag] || 0), 0)
+          const bScore = bTags.reduce((sum, tag) => sum + (tagFrequencies[tag] || 0), 0)
+          return bScore - aScore
+        })
+
+        setFoods(allFoods)
       } catch (error) {
-        console.error('Error fetching foods:', error)
+        console.error('Error fetching data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchFoods()
+    fetchData()
   }, [])
+
+  const handleSearch = async (query) => {
+    setSearchQuery(query)
+    if (query.trim()) {
+      setLoading(true)
+      try {
+        const results = await searchFoods(query)
+        setFoods(results)
+      } catch (error) {
+        console.error('Error searching foods:', error)
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      // Reset to all foods if search is cleared
+      const allFoods = await getFoods()
+      setFoods(allFoods)
+    }
+  }
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-20">
@@ -38,13 +80,6 @@ function Home() {
           backgroundPosition: "center",
         }}
       >
-        {/* Menu button with higher z-index to appear above overlay */}
-        <div className="absolute top-4 left-4 z-10">
-          <button className="p-2 bg-white rounded-md shadow-sm">
-            <Menu className="w-6 h-6 text-purple-700" />
-          </button>
-        </div>
-
         {/* Main content with higher z-index */}
         <div className="pt-20 text-center relative z-10">
           <h1 className="text-3xl font-bold text-white drop-shadow-md">Welcome</h1>
@@ -54,46 +89,31 @@ function Home() {
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
               className="w-full py-2 pl-10 pr-4 bg-white rounded-full shadow-md focus:outline-none"
               placeholder="Search for food..."
             />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-3">
-              <button className="p-1">
-                <ShoppingCart className="w-5 h-5 text-purple-700" />
-              </button>
-              <button className="p-1">
-                <Bell className="w-5 h-5 text-purple-700" />
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Categories */}
-      <div className="px-4 py-6">
-        <h2 className="text-2xl font-bold text-purple-700">Categories</h2>
-        <div className="grid grid-cols-4 gap-2 mt-4">
-          <CategoryItem image="/assets/vegetable.svg" name="Vegetable Salad" />
-          <CategoryItem image="/assets/fruit.svg" name="Fruit Salad" />
-          <CategoryItem image="/assets/chicken.svg" name="Chicken Salad" />
-          <CategoryItem image="/assets/pasta.svg" name="Pasta Salad" />
-        </div>
-      </div>
-
       {/* Promo Carousel */}
-      <div className="py-2">
+      <div className="py-2 mt-4">
         <PromoCarousel />
       </div>
 
       {/* Menu Recommendations */}
       <div className="px-4 py-6">
-        <h2 className="text-2xl font-bold text-purple-700 mb-4">Menu Recommendation</h2>
+        <h2 className="text-2xl font-bold text-purple-700 mb-4">
+          {searchQuery ? "Search Results" : "Menu Recommendation"}
+        </h2>
 
         {loading ? (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-700"></div>
           </div>
-        ) : (
+        ) : foods.length > 0 ? (
           foods.map((item) => (
             <MenuItem
               key={item.id}
@@ -107,22 +127,13 @@ function Home() {
               image={item.image}
             />
           ))
+        ) : (
+          <p className="text-center text-gray-500 py-8">No foods found</p>
         )}
       </div>
 
       {/* Floating Cart */}
       <FloatingCart />
-    </div>
-  )
-}
-
-function CategoryItem({ image, name }) {
-  return (
-    <div className="flex flex-col items-center">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden">
-        <Image src={image || "/placeholder.svg"} alt={name} width={100} height={100} className="object-cover" />
-      </div>
-      <p className="mt-2 text-xs text-center font-medium">{name}</p>
     </div>
   )
 }
