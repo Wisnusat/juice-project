@@ -1,14 +1,16 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { History, Search } from "lucide-react"
 import { PromoCarousel } from "../components/ui/promo-carousel"
 import { MenuItem } from "../components/ui/menu-item"
 import { FloatingCart } from "../components/ui/floating-cart"
 import { useState, useEffect } from "react"
 import { getFoods, getUserTransactionHistory, searchFoods } from "../lib/supabase"
 import { getUserId } from "../lib/user"
+import { useRouter } from "next/navigation"
 
 function Home() {
+  const router = useRouter();
   const [foods, setFoods] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
@@ -80,8 +82,14 @@ function Home() {
           backgroundPosition: "center",
         }}
       >
+        <div className="w-full flex justify-end p-2">
+          <button className="p-2 bg-white rounded-md shadow-sm cursor-pointer" onClick={() => router.push('/transactions')}>
+            <History className="w-6 h-6 text-purple-700" />
+          </button>
+        </div>
+
         {/* Main content with higher z-index */}
-        <div className="pt-20 text-center relative z-10">
+        <div className="pt-10 text-center relative z-10">
           <h1 className="text-3xl font-bold text-white drop-shadow-md">Welcome</h1>
           <div className="relative mx-auto mt-4 w-4/5">
             <div className="absolute inset-y-0 left-3 flex items-center">

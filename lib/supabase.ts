@@ -80,6 +80,7 @@ export async function createTransaction(
           name,
           phone,
           total_price: totalPrice,
+          status: 'processing'
         },
       ])
       .select()
@@ -150,4 +151,118 @@ export async function searchFoods(query: string): Promise<Food[]> {
   }
 
   return data || []
+}
+
+export async function getUserTransactionsWithFoods(userId: string) {
+  // Fetch transactions with their foods_order and foods details
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+      id,
+      created_at,
+      total_price,
+      name,
+      phone,
+      status,
+      foods_order (
+        id,
+        food_id,
+        foods (
+          id,
+          name,
+          price,
+          image
+        )
+      )
+    `)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching transactions:', error);
+    return [];
+  }
+
+  // Map to UI-friendly structure
+  return (data || []).map((tx: any) => ({
+    id: tx.id,
+    date: new Date(tx.created_at).toLocaleDateString(),
+    time: new Date(tx.created_at).toLocaleTimeString(),
+    status: tx.status, // You can adjust this if you add status to your table
+    items: (tx.foods_order || []).map((fo: any) => ({
+      id: fo.foods?.id || fo.food_id,
+      name: fo.foods?.name || "Unknown",
+      price: fo.foods?.price || 0,
+      quantity: 1,
+      image: fo.foods?.image || "",
+    })),
+    totalPrice: tx.total_price,
+    deliveryFee: 0, // If you add delivery fee, use it here
+    paymentMethod: "QRIS", // If you store payment method, use it here
+  }));
+}
+
+export async function getAllTransactionsWithFoods() {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+      id,
+      name,
+      phone,
+      created_at,
+      total_price,
+      status,
+      foods_order (
+        id,
+        food_id,
+        foods (
+          id,
+          name,
+          price,
+          image
+        )
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching all transactions:', error);
+    return [];
+  }
+
+  // Map to UI-friendly structure
+  return (data || []).map((tx: any) => ({
+    id: tx.id,
+    customer: {
+      name: tx.name,
+      phone: tx.phone,
+    },
+    date: new Date(tx.created_at).toLocaleDateString(),
+    time: new Date(tx.created_at).toLocaleTimeString(),
+    status: tx.status || "processing",
+    items: (tx.foods_order || []).map((fo: any) => ({
+      id: fo.foods?.id || fo.food_id,
+      name: fo.foods?.name || "Unknown",
+      price: fo.foods?.price || 0,
+      quantity: fo.quantity || 1,
+      image: fo.foods?.image || "",
+    })),
+    totalPrice: tx.total_price,
+    paymentMethod: "QRIS", // Adjust if you have this field
+    address: "", // Add if you have this field
+    notes: "",   // Add if you have this field
+  }));
+}
+
+export async function updateTransactionStatus(transactionId: string, status: string) {
+  const { error } = await supabase
+    .from('transactions')
+    .update({ status })
+    .eq('id', transactionId);
+
+  if (error) {
+    console.error('Error updating transaction status:', error);
+    return false;
+  }
+  return true;
 } 
