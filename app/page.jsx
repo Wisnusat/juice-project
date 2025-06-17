@@ -107,9 +107,9 @@ function Home() {
       </div>
 
       {/* Promo Carousel */}
-      <div className="py-2 mt-4">
+      {/* <div className="py-2 mt-4">
         <PromoCarousel />
-      </div>
+      </div> */}
 
       {/* Menu Recommendations */}
       <div className="px-4 py-6">
